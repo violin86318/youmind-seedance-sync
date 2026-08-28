@@ -195,14 +195,21 @@ npm run disable:r2-dev-url
 部署链路是：
 
 - GitHub Actions 生成 `site/` 静态文件
-- 同步部署到 Cloudflare Pages 项目 `seedance`
-- `seedance-site` Worker 绑定 `seedance.beyondmotion.net`，并转发到 Pages 源站
+- `site/data/prompts.json` 上传到 R2 桶 `seedance-data`（绕过 Pages 单文件 25 MiB 限制）
+- 静态资源部署到 Cloudflare Pages 项目 `seedance-site`
+- `seedance-site` Worker 绑定 `seedance.beyondmotion.net`：静态资源转发到 Pages 源站，`/data/prompts.json` 直接从 R2 读取
 - R2 视频仍通过 `youmind-r2-video-gate` Worker 做来源校验
 
 手动部署站点 Worker：
 
 ```bash
 npm run deploy:seedance-site
+```
+
+手动上传站点数据到 R2：
+
+```bash
+CLOUDFLARE_API_TOKEN=<token> npx wrangler r2 object put "seedance-data/data/prompts.json" --remote --file site/data/prompts.json --content-type "application/json"
 ```
 
 ## 数据表字段

@@ -7,5 +7,10 @@ routes = [
   { pattern = "seedance.beyondmotion.net", custom_domain = true }
 ]
 
+[[r2_buckets]]
+binding = "DATA"
+bucket_name = "seedance-data"
+
 [vars]
-SITE_ORIGIN = "https://seedance-5b9.pages.dev"
+SITE_ORIGIN = "https://seedance-site.pages.dev"
+DATA_KEY = "data/prompts.json"

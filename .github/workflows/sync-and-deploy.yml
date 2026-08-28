@@ -127,13 +127,20 @@ jobs:
           echo "current_hash=$current_hash" >> "$GITHUB_OUTPUT"
           echo "should_deploy=$should_deploy" >> "$GITHUB_OUTPUT"
 
+      - name: Upload site data to R2
+        if: ${{ steps.sync-gate.outputs.should_sync == 'true' && steps.deploy-gate.outputs.should_deploy == 'true' && env.CLOUDFLARE_API_TOKEN != '' }}
+        run: npx wrangler r2 object put "seedance-data/data/prompts.json" --remote --file site/data/prompts.json --content-type "application/json"
+
       - name: Deploy Cloudflare Pages
         if: ${{ steps.sync-gate.outputs.should_sync == 'true' && steps.deploy-gate.outputs.should_deploy == 'true' && env.CLOUDFLARE_API_TOKEN != '' }}
         continue-on-error: true
         run: |
           set -euo pipefail
+          # prompts.json is served from R2 by the seedance-site Worker (Pages 25 MiB file limit)
+          mv site/data/prompts.json /tmp/prompts.json.r2-synced
+          trap 'mv /tmp/prompts.json.r2-synced site/data/prompts.json' EXIT
           for attempt in 1 2 3; do
-            if npx wrangler pages deploy site --project-name seedance --branch main --commit-dirty=true; then
+            if npx wrangler pages deploy site --project-name seedance-site --branch main --commit-dirty=true; then
               exit 0
             fi
 

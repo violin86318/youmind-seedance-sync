@@ -172,7 +172,10 @@ Primary config logic: [scripts/lib/config.mjs](./scripts/lib/config.mjs)
 - Current route:
   - `seedance.beyondmotion.net`
 - Current upstream origin:
-  - `https://seedance-5b9.pages.dev`
+  - `https://seedance-site.pages.dev` (Pages project `seedance-site` in the Violinpearson account)
+- Prompt data:
+  - `site/data/prompts.json` is uploaded to R2 bucket `seedance-data` (key `data/prompts.json`)
+  - The Worker serves `/data/prompts.json` directly from R2, bypassing the Pages 25 MiB single-file limit
 
 ### Video gateway
 
