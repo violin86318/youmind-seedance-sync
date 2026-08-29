@@ -21,5 +21,8 @@
     "analyze:prompts:stable": "node scripts/analyze-prompts.mjs --stable",
     "prepare:site": "node scripts/fetch-prompts.mjs && node scripts/build-site.mjs",
     "collect:aimikoda-seedance": "node scripts/collect-aimikoda-seedance.mjs"
+  },
+  "dependencies": {
+    "undici": "^7.29.0"
   }
 }

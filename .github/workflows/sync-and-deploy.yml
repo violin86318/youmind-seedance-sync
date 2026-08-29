@@ -47,6 +47,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Configure persistent prompt cache
         run: |
           echo "YOUMIND_CACHE_DIR=$HOME/.cache/youmind-seedance-sync" >> "$GITHUB_ENV"
@@ -106,7 +109,11 @@ jobs:
       - name: Build site data
         if: ${{ steps.sync-gate.outputs.should_sync == 'true' }}
         env:
-          SITE_SOURCE_MODE: public-only
+          SITE_SOURCE_MODE: auto
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_BASE_TOKEN: ${{ secrets.FEISHU_BASE_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
         run: npm run build:site
 
       - name: Decide whether deployment is needed
@@ -195,6 +202,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Restore prompt cache
         id: restore-prompt-cache
         uses: actions/cache/restore@v4
@@ -243,7 +253,11 @@ jobs:
       - name: Build site data
         if: ${{ steps.sync-gate.outputs.should_sync == 'true' }}
         env:
-          SITE_SOURCE_MODE: public-only
+          SITE_SOURCE_MODE: auto
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_BASE_TOKEN: ${{ secrets.FEISHU_BASE_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
         run: npm run build:site
 
       - name: Decide whether deployment is needed

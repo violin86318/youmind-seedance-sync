@@ -1,15 +1,13 @@
 import path from "path";
 import { DATA_DIR, readJsonIfExists, resolveR2Config, resolveSyncTarget } from "./config.mjs";
-import { FIELD_ORDER } from "./schema.mjs";
-import { runLarkCliJson } from "./lark-cli.mjs";
+import { FeishuBitableApiClient, getTenantAccessToken } from "./feishu-api.mjs";
 import { loadOrFetchPromptPayload } from "./prompt-source.mjs";
 import { analyzePromptForSite } from "./prompt-insights.mjs";
 import {
   buildSiteVideoFields,
   normalizePromptToRow,
   promptToSitePrompt,
-  rowObjectToSitePrompt,
-  rowValuesToObject
+  rowObjectToSitePrompt
 } from "./prompt-utils.mjs";
 import { getMirrorRecord, loadMirrorManifest } from "./video-source.mjs";
 
@@ -133,36 +131,30 @@ async function loadSnapshotPayload(target) {
   };
 }
 
-function listAllRowsWithLark(baseToken, tableId) {
+async function listAllRowsFromFeishu(baseToken, tableId) {
+  const token = await getTenantAccessToken();
+  const client = new FeishuBitableApiClient(token);
   const rows = [];
-  let offset = 0;
+  let pageToken = "";
 
   while (true) {
-    const response = runLarkCliJson([
-      "base",
-      "+record-list",
-      "--base-token",
-      baseToken,
-      "--table-id",
-      tableId,
-      "--limit",
-      "100",
-      "--offset",
-      String(offset)
-    ]);
+    const data = await client.listRecords({ baseToken, tableId, pageToken });
 
-    const data = response.data;
-    const fieldOrder = Array.isArray(data.fields) && data.fields.length > 0 ? data.fields : FIELD_ORDER;
+    for (const record of data.items || []) {
+      const fields = record.fields || {};
 
-    for (const values of data.data || []) {
-      rows.push(rowValuesToObject(values, fieldOrder));
+      if (!fields["Prompt ID"]) {
+        continue;
+      }
+
+      rows.push(fields);
     }
 
-    if (!data.has_more) {
+    if (!data.has_more || !data.page_token) {
       break;
     }
 
-    offset += Array.isArray(data.data) && data.data.length > 0 ? data.data.length : 100;
+    pageToken = data.page_token;
   }
 
   return rows;
@@ -295,7 +287,7 @@ export async function loadSitePayloadForBuild() {
 
   if (shouldTryFeishu) {
     try {
-      const rows = listAllRowsWithLark(target.baseToken, target.tableId);
+      const rows = await listAllRowsFromFeishu(target.baseToken, target.tableId);
       const prompts = rows
         .map((row) =>
           mergePromptWithMirrorRecord(

@@ -1,4 +1,7 @@
 import { DEFAULT_LOCALE, DEFAULT_MODEL } from "./config.mjs";
+import { enableEnvProxy } from "./http-proxy.mjs";
+
+await enableEnvProxy();
 
 const API_URL = "https://youmind.com/youmarketing-api/video-prompts";
 const USER_AGENT =
